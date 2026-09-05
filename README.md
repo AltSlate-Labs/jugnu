@@ -1,0 +1,57 @@
+# Jugnu 🪰✨
+
+Tiny language models trained **from scratch**, by [AltSlate Labs](https://github.com/AltSlate-Labs).
+*Jugnu* (जुगनू) means "firefly" — small, but it glows.
+
+This repo is the **shared training recipe** for the whole Jugnu family: one set of
+code, one config per model. Trained checkpoints live as separate Hugging Face
+model repos.
+
+## Models
+
+| Model | Params | BLiMP | ARC-Easy | WikiText-2 (byte-ppl) | Weights |
+|---|---|---|---|---|---|
+| **JugnuLM-53M** | 53.5M | 78.14% | 51.43% | 2.04 | [altslate/JugnuLM-53M](https://huggingface.co/altslate/JugnuLM-53M) |
+
+Built for the [Tiny-ML Leaderboard](https://huggingface.co/spaces/Glint-Research/Tiny-ML-Leaderboard) (sub-150M-param models).
+
+## What's here
+
+| File | Role |
+|---|---|
+| `config.py` | all hyperparameters for the current model |
+| `model.py` | model + tokenizer builders (HF Qwen3 arch = Llama + QK-Norm) |
+| `count_params.py` | assert the model is under the 150M limit |
+| `prepare_data.py` | FineWeb-Edu → uint16 `.bin` memmaps |
+| `train.py` | DDP + bf16 + torch.compile pretraining loop (CE + z-loss) |
+| `run_train.sh` | 4-GPU launcher (`torchrun`) |
+| `eval.sh` | `lm-eval-harness` on `blimp,arc_easy,wikitext` |
+| `predict_eff.py` | estimate the leaderboard efficiency score / rank |
+| `watch_and_eval.sh` | wait for training to finish, then auto-run eval |
+| `MODEL_CARD.md` | model card (also published on the HF page) |
+| `SUBMIT.md` | how to submit to the Tiny-ML Leaderboard |
+
+## Reproduce JugnuLM-53M
+
+```bash
+pip install -r requirements.txt
+python count_params.py                        # confirm < 150M
+python prepare_data.py                         # download + tokenize FineWeb-Edu
+torchrun --standalone --nproc_per_node=4 train.py   # ~12B tokens
+./eval.sh out/final                            # BLiMP / ARC-Easy / WikiText
+```
+
+Recipe in brief: **Qwen3 architecture** (Llama + built-in QK-Norm), 53.5M params,
+GQA, tied embeddings, SmolLM2 tokenizer (49,152 vocab), **z-loss** for logit
+stability, trained on ~12B tokens of `HuggingFaceFW/fineweb-edu` with a cosine
+schedule on 4× NVIDIA RTX PRO 4500 Blackwell GPUs.
+
+## Adding a new Jugnu model
+
+The code is shared — a new family member is a new **config** + a new HF **weights**
+repo, not a new codebase. Point `config.py` at the new sizes/budget, retrain, and
+publish the checkpoint as `altslate/JugnuLM-<size>`.
+
+## License
+
+Apache-2.0.

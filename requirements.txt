@@ -1,0 +1,9 @@
+# Your box already has a Blackwell-ready torch (cu13x) + vLLM installed.
+# Do NOT reinstall torch here — just add the rest:
+transformers>=4.51        # Qwen3 arch (built-in QK-Norm)
+datasets>=2.20
+lm-eval>=0.4.4
+accelerate>=0.34
+numpy
+tqdm
+huggingface_hub
