@@ -9,11 +9,13 @@ model repos.
 
 ## Models
 
-| Model | Params | BLiMP | ARC-Easy | WikiText-2 (byte-ppl) | Weights |
-|---|---|---|---|---|---|
-| **JugnuLM-53M** | 53.5M | 78.14% | 51.43% | 2.04 | [altslate/JugnuLM-53M](https://huggingface.co/altslate/JugnuLM-53M) |
+| Model | Params | Geometry | BLiMP | ARC-Easy | WikiText-2 (byte-ppl) | Weights |
+|---|---|---|---|---|---|---|
+| **JugnuLM-53M** | 53.5M | 8L × 512 | 78.14% | 51.43% | 2.04 | [altslate/JugnuLM-53M](https://huggingface.co/altslate/JugnuLM-53M) |
+| **JugnuLM-110M** | 109.7M | 23L × 576 (deep-thin) | **81.25%** | **52.48%** | **1.95** | [altslate/JugnuLM-110M](https://huggingface.co/altslate/JugnuLM-110M) |
 
-Built for the [Tiny-ML Leaderboard](https://huggingface.co/spaces/Glint-Research/Tiny-ML-Leaderboard) (sub-150M-param models).
+JugnuLM-110M's 81.25% BLiMP ≈ GPT-X2-125M (81.28%) at ~12% fewer params and ~9× fewer
+training tokens. Built for the [Tiny-ML Leaderboard](https://huggingface.co/spaces/Glint-Research/Tiny-ML-Leaderboard) (sub-150M-param models).
 
 ## What's here
 
@@ -49,8 +51,9 @@ schedule on 4× NVIDIA RTX PRO 4500 Blackwell GPUs.
 ## Adding a new Jugnu model
 
 The code is shared — a new family member is a new **config** + a new HF **weights**
-repo, not a new codebase. Point `config.py` at the new sizes/budget, retrain, and
-publish the checkpoint as `altslate/JugnuLM-<size>`.
+repo, not a new codebase. Copy the desired config over `config.py`, retrain, and
+publish the checkpoint as `altslate/JugnuLM-<size>`. Example: `config_110m.py` is the
+deep-thin 110M recipe.
 
 ## License
 
