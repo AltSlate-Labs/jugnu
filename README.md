@@ -12,10 +12,25 @@ model repos.
 | Model | Params | Geometry | BLiMP | ARC-Easy | WikiText-2 (byte-ppl) | Weights |
 |---|---|---|---|---|---|---|
 | **JugnuLM-53M** | 53.5M | 8L × 512 | 78.14% | 51.43% | 2.04 | [altslate/JugnuLM-53M](https://huggingface.co/altslate/JugnuLM-53M) |
-| **JugnuLM-110M** | 109.7M | 23L × 576 (deep-thin) | **81.25%** | **52.48%** | **1.95** | [altslate/JugnuLM-110M](https://huggingface.co/altslate/JugnuLM-110M) |
+| **JugnuLM-110M** | 109.7M | 23L × 576 (deep-thin) | **81.25%** | 52.48% | **1.95** | [altslate/JugnuLM-110M](https://huggingface.co/altslate/JugnuLM-110M) |
+| **JugnuLM-110M-R1** | 109.7M | 23L × 576 + value residuals | 81.10% | **54.67%** | **1.94** | [altslate/JugnuLM-110M-R1](https://huggingface.co/altslate/JugnuLM-110M-R1) |
 
 JugnuLM-110M's 81.25% BLiMP ≈ GPT-X2-125M (81.28%) at ~12% fewer params and ~9× fewer
 training tokens. Built for the [Tiny-ML Leaderboard](https://huggingface.co/spaces/Glint-Research/Tiny-ML-Leaderboard) (sub-150M-param models).
+
+### Ablation ladder
+
+Starting from JugnuLM-110M (rung **R0**, an honest conventional baseline), we add one
+lever at a time and keep only what beats the prior rung.
+
+- **R1 — value residuals** ([ResFormer](https://arxiv.org/abs/2410.17897)): each layer's
+  value gains a learned-gated residual from the first layer's value (`v_i += λ_i·v₀`),
+  implemented in `value_residual.py`. **Result: ARC-Easy +2.2 (52.48→54.67) at a BLiMP tie
+  and slightly lower perplexity → kept.**
+  *Caveat:* value residuals are a custom attention pathway, so `eval.sh`'s stock
+  `from_pretrained` silently drops them — evaluate by rebuilding the model and loading
+  weights (incl. `vr_lambda`). To train R1: copy `config_110m.py`→`config.py` and point
+  `train.py`'s `make_model` at `value_residual.py`.
 
 ## What's here
 
