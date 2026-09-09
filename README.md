@@ -14,7 +14,8 @@ model repos.
 | **JugnuLM-53M** | 53.5M | 8L × 512 | 78.14% | 51.43% | 2.04 | [altslate/JugnuLM-53M](https://huggingface.co/altslate/JugnuLM-53M) |
 | **JugnuLM-110M** | 109.7M | 23L × 576 (deep-thin) | **81.25%** | 52.48% | 1.95 | [altslate/JugnuLM-110M](https://huggingface.co/altslate/JugnuLM-110M) |
 | **JugnuLM-110M-R1** | 109.7M | 23L × 576 + value residuals | 81.10% | 54.67% | 1.94 | [altslate/JugnuLM-110M-R1](https://huggingface.co/altslate/JugnuLM-110M-R1) |
-| **JugnuLM-110M-R2** | 109.7M | 23L × 576 + value residuals + Muon | 80.78% | **56.10%** | **1.93** | [altslate/JugnuLM-110M-R2](https://huggingface.co/altslate/JugnuLM-110M-R2) |
+| **JugnuLM-110M-R2** | 109.7M | 23L × 576 + value residuals + Muon | 80.78% | **56.10%** | 1.93 | [altslate/JugnuLM-110M-R2](https://huggingface.co/altslate/JugnuLM-110M-R2) |
+| **JugnuLM-110M-R3** | 109.7M | R2 + data blend (FWEdu/DCLM/FineMath) | **81.79%** | 53.62% | **1.91** | [altslate/JugnuLM-110M-R3](https://huggingface.co/altslate/JugnuLM-110M-R3) |
 
 JugnuLM-110M's 81.25% BLiMP ≈ GPT-X2-125M (81.28%) at ~12% fewer params and ~9× fewer
 training tokens. Built for the [Tiny-ML Leaderboard](https://huggingface.co/spaces/Glint-Research/Tiny-ML-Leaderboard) (sub-150M-param models).
@@ -38,6 +39,14 @@ lever at a time and keep only what beats the prior rung.
   perplexity at a small BLiMP dip (−0.32) → kept.** Muon's convergence lead was largest early
   (val-ppl −26% at step 1000) and compressed by end of the fixed token budget, but the
   downstream ARC gain persisted. Cumulative over R1+R2: **ARC-Easy +3.6** (52.48→56.10).
+- **R3 — data blend** (FineWeb-Edu 55% / DCLM-baseline 35% / FineMath 10%, per-sequence mix;
+  same optimizer/schedule/tokens as R2): **dropped.** It gave the **best BLiMP (81.79) and
+  best perplexity (1.91)** of the family, but **ARC-Easy fell −2.48 (56.10→53.62)** — a loss
+  on our binding metric, so it doesn't beat R2. *Finding:* FineWeb-Edu's educational filtering
+  is what feeds ARC-Easy (grade-school science); diluting it with general web + math improves
+  broad LM quality but removes ARC-relevant signal. **For ARC the lever is more educational
+  data (and distillation), not more diversity.** Model published for the record; the ladder
+  continues from R2.
 
 ## What's here
 
