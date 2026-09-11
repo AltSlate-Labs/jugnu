@@ -16,6 +16,7 @@ model repos.
 | **JugnuLM-110M-R1** | 109.7M | 23L × 576 + value residuals | 81.10% | 54.67% | 1.94 | [altslate/JugnuLM-110M-R1](https://huggingface.co/altslate/JugnuLM-110M-R1) |
 | **JugnuLM-110M-R2** | 109.7M | 23L × 576 + value residuals + Muon | 80.78% | **56.10%** | 1.93 | [altslate/JugnuLM-110M-R2](https://huggingface.co/altslate/JugnuLM-110M-R2) |
 | **JugnuLM-110M-R3** | 109.7M | R2 + data blend (FWEdu/DCLM/FineMath) | **81.79%** | 53.62% | **1.91** | [altslate/JugnuLM-110M-R3](https://huggingface.co/altslate/JugnuLM-110M-R3) |
+| **JugnuLM-110M-R4a** | 109.7M | R2 + logit KD (SmolLM2-1.7B teacher) | 80.39% | **56.99%** | 2.18 | [altslate/JugnuLM-110M-R4a](https://huggingface.co/altslate/JugnuLM-110M-R4a) |
 
 JugnuLM-110M's 81.25% BLiMP ≈ GPT-X2-125M (81.28%) at ~12% fewer params and ~9× fewer
 training tokens. Built for the [Tiny-ML Leaderboard](https://huggingface.co/spaces/Glint-Research/Tiny-ML-Leaderboard) (sub-150M-param models).
@@ -47,6 +48,15 @@ lever at a time and keep only what beats the prior rung.
   broad LM quality but removes ARC-relevant signal. **For ARC the lever is more educational
   data (and distillation), not more diversity.** Model published for the record; the ladder
   continues from R2.
+- **R4a — logit distillation** (offline top-16 logit KD from
+  [SmolLM2-1.7B](https://huggingface.co/HuggingFaceTB/SmolLM2-1.7B), same tokenizer; loss
+  `0.5·CE + 0.5·τ²·KL`, τ=2): **the distillation lever works for ARC** — ARC-Easy **56.99**,
+  best of any rung and ≈GPT-X2-125M's 57.07. **But this setting over-weights KD** (~4× the
+  hard-label loss), so the student over-imitates the teacher's softened distribution and
+  **WikiText perplexity rose to 2.18** (from R2's 1.93). On the blended efficiency score the
+  perplexity regression outweighs the ARC gain, so R4a is **not kept as-is** — it validates the
+  lever and motivates **R4b (α=0.7, τ=1)**, a rebalance aiming to keep the ARC win without the
+  perplexity cost (no re-precompute needed — teacher logits are cached).
 
 ## What's here
 
