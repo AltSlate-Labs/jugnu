@@ -16,7 +16,8 @@ model repos.
 | **JugnuLM-110M-R1** | 109.7M | 23L × 576 + value residuals | 81.10% | 54.67% | 1.94 | [altslate/JugnuLM-110M-R1](https://huggingface.co/altslate/JugnuLM-110M-R1) |
 | **JugnuLM-110M-R2** | 109.7M | 23L × 576 + value residuals + Muon | 80.78% | **56.10%** | 1.93 | [altslate/JugnuLM-110M-R2](https://huggingface.co/altslate/JugnuLM-110M-R2) |
 | **JugnuLM-110M-R3** | 109.7M | R2 + data blend (FWEdu/DCLM/FineMath) | **81.79%** | 53.62% | **1.91** | [altslate/JugnuLM-110M-R3](https://huggingface.co/altslate/JugnuLM-110M-R3) |
-| **JugnuLM-110M-R4a** | 109.7M | R2 + logit KD (SmolLM2-1.7B teacher) | 80.39% | **56.99%** | 2.18 | [altslate/JugnuLM-110M-R4a](https://huggingface.co/altslate/JugnuLM-110M-R4a) |
+| **JugnuLM-110M-R4a** | 109.7M | R2 + logit KD, heavy (α=0.5, τ=2) | 80.39% | **56.99%** | 2.18 | [altslate/JugnuLM-110M-R4a](https://huggingface.co/altslate/JugnuLM-110M-R4a) |
+| **JugnuLM-110M-R4b** | 109.7M | R2 + logit KD, light (α=0.7, τ=1) | 79.30% | 55.47% | 1.92 | [altslate/JugnuLM-110M-R4b](https://huggingface.co/altslate/JugnuLM-110M-R4b) |
 
 JugnuLM-110M's 81.25% BLiMP ≈ GPT-X2-125M (81.28%) at ~12% fewer params and ~9× fewer
 training tokens. Built for the [Tiny-ML Leaderboard](https://huggingface.co/spaces/Glint-Research/Tiny-ML-Leaderboard) (sub-150M-param models).
@@ -57,6 +58,13 @@ lever at a time and keep only what beats the prior rung.
   perplexity regression outweighs the ARC gain, so R4a is **not kept as-is** — it validates the
   lever and motivates **R4b (α=0.7, τ=1)**, a rebalance aiming to keep the ARC win without the
   perplexity cost (no re-precompute needed — teacher logits are cached).
+- **R4b — rebalanced KD** (α=0.7, τ=1, KD ≈0.4× CE): tested whether gentler KD keeps R4a's ARC
+  gain without the perplexity hit. **It doesn't** — perplexity recovers (1.92) but ARC-Easy falls
+  to 55.47 (*below* the no-KD R2 baseline) and BLiMP drops to 79.30. **Dropped.** R4a/R4b bracket
+  a narrow KD operating point (heavy → ARC+/ppl−; light → ppl+/ARC−); neither beats R2 on the
+  blended score. Honest takeaway: **offline logit KD from a 1.7B teacher (~15× gap) is not a clean
+  win at this scale** — R2 remains the strongest kept stack. (A fairer retry would use full-corpus
+  teacher logits and/or a different mechanism — reverse-KL, a smaller teacher.)
 
 ## What's here
 
