@@ -5,7 +5,11 @@ stock Qwen3 loading would silently drop the value-residual pathway."""
 import torch
 import torch.nn as nn
 from transformers import Qwen3ForCausalLM
-from configuration_jugnu_vr import JugnuVRConfig
+try:
+    from .configuration_jugnu_vr import JugnuVRConfig  # HF dynamic-module (trust_remote_code) load
+except ImportError:  # direct/script import (e.g. packaging) — importlib avoids check_imports flagging
+    import importlib
+    JugnuVRConfig = importlib.import_module("configuration_jugnu_vr").JugnuVRConfig
 
 
 class VResidualLinear(nn.Linear):
