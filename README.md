@@ -18,9 +18,18 @@ model repos.
 | **JugnuLM-110M-R3** | 109.7M | R2 + data blend (FWEdu/DCLM/FineMath) | **81.79%** | 53.62% | **1.91** | [altslate/JugnuLM-110M-R3](https://huggingface.co/altslate/JugnuLM-110M-R3) |
 | **JugnuLM-110M-R4a** | 109.7M | R2 + logit KD, heavy (α=0.5, τ=2) | 80.39% | **56.99%** | 2.18 | [altslate/JugnuLM-110M-R4a](https://huggingface.co/altslate/JugnuLM-110M-R4a) |
 | **JugnuLM-110M-R4b** | 109.7M | R2 + logit KD, light (α=0.7, τ=1) | 79.30% | 55.47% | 1.92 | [altslate/JugnuLM-110M-R4b](https://huggingface.co/altslate/JugnuLM-110M-R4b) |
+| 🏆 **JugnuLM-110M-R2+** | 109.7M | R2 recipe + WSD, **25B tokens** | **82.52%** | 55.13% | **1.8735** | [altslate/JugnuLM-110M-R2plus](https://huggingface.co/altslate/JugnuLM-110M-R2plus) |
 
-JugnuLM-110M's 81.25% BLiMP ≈ GPT-X2-125M (81.28%) at ~12% fewer params and ~9× fewer
-training tokens. Built for the [Tiny-ML Leaderboard](https://huggingface.co/spaces/Glint-Research/Tiny-ML-Leaderboard) (sub-150M-param models).
+**JugnuLM-110M-R2+** is the flagship: the kept R2 recipe (value residuals + Muon) scaled to **25B tokens** with a
+**WSD** schedule and modest decay-phase educational upweighting. It posts the family's best BLiMP (82.52) and
+byte-ppl (1.8735), beats the R0 baseline on all three metrics, and ranks **#1 on the leaderboard efficiency score**
+(EFF ≈ 80.21) — a narrow, within-noise lead over GPT-X2-125M (80.06) and Haidass-143M (79.83), winning on the size
+bonus as the smallest of the three. JugnuLM-110M (R0) already matches GPT-X2-125M's 81.25% BLiMP at ~12% fewer params
+and ~9× fewer tokens. Built for the [Tiny-ML Leaderboard](https://huggingface.co/spaces/Glint-Research/Tiny-ML-Leaderboard) (sub-150M-param models).
+
+> **Loading R2+ (and R1/R2):** value residuals are a custom attention pathway. R2+ ships a `trust_remote_code` model
+> — `AutoModelForCausalLM.from_pretrained("altslate/JugnuLM-110M-R2plus", trust_remote_code=True)` — so stock loading
+> does **not** silently drop the value-residual pathway (which degrades ARC-Easy ~6pts and byte-ppl ~0.18).
 
 ### Ablation ladder
 
@@ -77,6 +86,9 @@ lever at a time and keep only what beats the prior rung.
 | `train.py` | DDP + bf16 + torch.compile pretraining loop (CE + z-loss) |
 | `value_residual.py` | R1 lever: value-residual (ResFormer) model builder |
 | `muon.py` | R2 lever: Muon optimizer + 2D/embedding param split |
+| `config_r2plus.py` | R2+ flagship config (WSD schedule, decay edu-upweight, 25B tokens) |
+| `train_r2plus.py` | R2+ training loop (WSD + Muon + value residuals) |
+| `modeling_jugnu_vr.py`, `configuration_jugnu_vr.py` | HF custom-code VR model — correct `trust_remote_code` loading |
 | `run_train.sh` | 4-GPU launcher (`torchrun`) |
 | `eval.sh` | `lm-eval-harness` on `blimp,arc_easy,wikitext` |
 | `predict_eff.py` | estimate the leaderboard efficiency score / rank |
